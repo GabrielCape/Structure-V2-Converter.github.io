@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conversor MCStructure</title>
+<style>
+  :root { color-scheme: dark; font: 16px system-ui, sans-serif; background: #111820; color: #e5edf6; }
+  body { max-width: 820px; margin: 60px auto; padding: 0 24px; }
+  h1 { font-size: 30px; margin-bottom: 12px; }
+  p { line-height: 1.6; color: #b5c7d8; }
+  main { background: #1b2734; padding: 28px; border: 1px solid #35495d; border-radius: 16px; }
+  input { display: block; margin: 24px 0; max-width: 100%; }
+  button, a.download { display: inline-block; background: #92dfbe; color: #102c22; padding: 12px 18px; border-radius: 8px; border: 0; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+  button:disabled { opacity: .5; cursor: wait; }
+  ul { list-style: none; padding: 0; }
+  li { padding: 20px 0; border-bottom: 1px solid #35495d; overflow-wrap: anywhere; }
+  small { display: block; color: #b5c7d8; margin: 10px 0; }
+  .error { color: #ffaaaa; }
+</style>
+<body>
+<h1>Conversor MCStructure</h1>
+<p>Convertí estructuras a v2 con compresión de Minecraft Bedrock 1.26.60.</p>
+<main>
+  <label for="files">Seleccioná uno o varios archivos .mcstructure</label>
+  <input id="files" type="file" accept=".mcstructure" multiple>
+  <button id="convert">Convertir archivos</button>
+  <p>Los originales se conservan. Cada resultado se descarga con el sufijo <strong>_v2</strong>.
+  Todo se procesa en tu equipo; no se envían archivos a Internet.</p>
+  <p id="status" role="status" aria-live="polite"></p>
+  <ul id="results"></ul>
+</main>
+<p>Admite v1, v2 sin comprimir y v2 con zlib. No cambia el tamaño de la estructura ni une piezas.</p>
+<script>
+const token = '__TOKEN__', button = document.querySelector('#convert');
+const results = document.querySelector('#results'), status = document.querySelector('#status');
+const urls = [];
+const human = bytes => `${(bytes / 1024).toLocaleString('es', { maximumFractionDigits: 1 })} KiB`;
+button.onclick = async () => {
+  const files = Array.from(document.querySelector('#files').files);
+  if (!files.length) { status.textContent = 'Seleccioná al menos un archivo.'; return; }
+  urls.forEach(URL.revokeObjectURL); urls.length = 0; results.replaceChildren(); button.disabled = true;
+  let ok = 0;
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i], item = document.createElement('li'); results.append(item);
+      const title = document.createElement('strong'); title.textContent = file.name; item.append(title);
+      status.textContent = `Convirtiendo ${i + 1} de ${files.length}…`;
+      try {
+        if (file.size > 128 * 1024 * 1024) throw Error('El archivo supera 128 MiB');
+        const response = await fetch('/convert', { method: 'POST', headers: { 'X-Converter-Token': token }, body: file });
+        if (!response.ok) throw Error(await response.text());
+        const info = JSON.parse(response.headers.get('X-Conversion-Info'));
+        const url = URL.createObjectURL(await response.blob()); urls.push(url);
+        const detail = document.createElement('small');
+        detail.textContent = `${info.dimensions.join(' × ')} bloques · ${human(info.before)} → ${human(info.after)} · Reducción: ${(100 * (1 - info.after / info.before)).toFixed(1)}% · Integridad verificada`;
+        const link = document.createElement('a'); link.className = 'download'; link.href = url;
+        link.download = file.name.replace(/\.mcstructure$/i, '') + '_v2.mcstructure'; link.textContent = 'Descargar';
+        item.append(detail, link); ok++;
+      } catch (error) {
+        const detail = document.createElement('small'); detail.className = 'error'; detail.textContent = error.message; item.append(detail);
+      }
+    }
+    status.textContent = `Finalizado: ${ok} de ${files.length} archivos convertidos. Usá Descargar en cada resultado.`;
+  } finally { button.disabled = false; }
+};
+</script>
+</body>
+</html>
