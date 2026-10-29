@@ -1,74 +1,63 @@
-# Conversor MCStructure para Bedrock 1.26.60
+# MCStructure · Conversor web
 
-Herramienta local sin dependencias externas. Requiere Node.js 18 o posterior
-(en este equipo se verificó con Node.js 22.19.0).
+Página estática para convertir estructuras de Minecraft Bedrock a v2 con
+compresión zlib de 1.26.60. No necesita servidor, Node.js, instalación, claves
+ni servicios externos. Los archivos se procesan en el navegador, en un Web Worker.
 
-## Abrir la interfaz
+## Publicar en GitHub Pages
 
-Hacé doble clic en **Abrir conversor.cmd**. Se abre una consola y el navegador.
-Si el navegador no se abre, copiá el enlace que aparece en la consola.
-Seleccioná uno o varios archivos, pulsá **Convertir archivos** y descargá cada resultado.
-Los nombres descargados terminan en `_v2.mcstructure`.
-La consola debe permanecer abierta mientras usás la herramienta; cerrala al terminar.
+1. Subí **el contenido de esta carpeta** a la raíz de tu repositorio:
+   `index.html`, `style.css`, `app.js`, `converter.js`, `worker.js`, `.nojekyll` y este README.
+   `index.html` debe quedar directamente en la raíz, no dentro de `tools/` o de
+   `mcstructure-converter/` si querés que aparezca en la dirección principal.
+2. En GitHub, abrí **Settings → Pages**.
+3. En **Build and deployment → Source**, elegí **Deploy from a branch**.
+4. Seleccioná tu rama (normalmente `main`) y **/ (root)**. Guardá los cambios.
+5. Cuando GitHub termine de publicar, abrí el enlace que aparece en Pages.
 
-Los archivos se envían únicamente al servidor de tu propia computadora, en
-`127.0.0.1` y un puerto libre. La herramienta no usa servicios de Internet.
-No modifica los originales ni instala paquetes. Procesa los archivos uno por uno.
+Si el repositorio se llama `usuario.github.io`, la página queda en
+`https://usuario.github.io/`. Un repositorio con otro nombre se publica normalmente
+en `https://usuario.github.io/nombre-del-repositorio/`. Los enlaces relativos de esta
+web funcionan en ambos casos.
 
-## Línea de comandos
+GitHub Pages sirve todo lo necesario como archivos estáticos. No subas los antiguos
+`.cjs`, el lanzador `.cmd` ni archivos de estructuras de ejemplo. Ya no se usan.
 
-Desde esta carpeta:
+## Uso
 
-```powershell
-node cli.cjs "C:\ruta\estructura.mcstructure" --out "C:\ruta\convertidas"
-node cli.cjs "C:\ruta\primera.mcstructure" "C:\ruta\segunda.mcstructure" --out "C:\ruta\convertidas"
-```
+Elegí o arrastrá uno o varios `.mcstructure`, pulsá **Convertir archivos** y usá
+**Descargar** en cada resultado. Las descargas mantienen el nombre original del archivo, sin agregar sufijos.
+Podés cancelar la conversión; los resultados completados siguen disponibles.
+La conversión por lotes es secuencial para reducir el uso de memoria.
 
-Conserva el nombre dentro de la carpeta de salida. Rechaza sobrescribir un archivo
-existente, incluido el original. Si falla un archivo, informa el error y continúa
-con los demás; devuelve código de salida 1 si hubo errores.
+Los originales se conservan. No se suben archivos a Internet, no hay analíticas,
+fuentes remotas, CDN ni dependencias de terceros. Se requiere un navegador actual
+con Web Workers, CompressionStream y DecompressionStream. Para probar la página,
+servila por HTTP local o usá GitHub Pages: abrir index.html mediante `file://` puede
+bloquear el Web Worker.
 
-## Formatos y conservación de datos
+## Formato y límites
 
-- Lee v1, v2 sin compresión y v2 con `compression: 1`.
-- Escribe `format_version: 2`, listas de `IntArray` para los índices y compresión zlib.
-- Comprime un NBT little-endian completo, con nombre raíz vacío, dentro de
-  `structure` como `ByteArray`. Los demás campos raíz permanecen sin comprimir.
-- Conserva la segunda capa si existe, incluso si está vacía.
-- Conserva paletas, estados, entidades, datos de bloques, origen y campos desconocidos.
-  No traduce bloques ni actualiza la versión de los bloques de la paleta.
-- Después de convertir, vuelve a leer y descomprimir la salida y compara todos los
-  datos con la entrada normalizada. La comprobación también conserva los bits
-  de los números flotantes y los enteros de 64 bits.
-- Límites de esta herramienta: 20 millones de posiciones, NBT descomprimido de
-  hasta 512 MiB al leer y archivos de entrada de hasta 128 MiB en la interfaz.
+- Entrada: v1, v2 sin comprimir y v2 con zlib.
+- Salida: `format_version: 2`, `block_indices` con IntArray y `compression: 1`.
+- El compuesto `structure` se serializa como un NBT little-endian completo con
+  nombre raíz vacío y se comprime con zlib en un ByteArray; los metadatos raíz
+  quedan sin comprimir. Se conserva la segunda capa si existe.
+- Se preservan paletas, estados, entidades, datos de bloques, origen y campos
+  desconocidos. Se mantienen los bits de los números y las cadenas de los valores.
+  No se actualizan versiones ni identificadores de bloques de las paletas.
+- Cada resultado se vuelve a leer y se compara con todos los datos de entrada
+  normalizados antes de habilitar la descarga.
+- Hasta 128 MiB de entrada, 20 millones de posiciones y 512 MiB de NBT descomprimido
+  por estructura. El navegador puede agotar la memoria antes, especialmente en móviles.
 
-La conversión no aumenta el límite de exportación del structure block, no une piezas
-y no verifica la disponibilidad de los bloques personalizados en el mundo de destino.
-No se ha probado aún la carga de los resultados dentro de Minecraft: hacelo primero
-en una copia del mundo. La integridad verificada es del archivo, no una prueba en el juego.
+No une estructuras ni elimina el límite de exportación del structure block. La
+validación del archivo no sustituye una prueba dentro de Minecraft. Probá las
+estructuras convertidas en una copia del mundo y con los addons que necesiten.
 
-## Ejemplos convertidos y validación
+## Referencias
 
-En `converted/` están las copias de los dos ejemplos proporcionados:
-
-- `top.mcstructure`: 95 × 96 × 95; de 7.241.885 a 175.037 bytes (97,6 % menos).
-- `octopus.mcstructure`: 63 × 117 × 57; ya comprimido, de 61.149 a 61.250 bytes.
-  El contenido NBT descomprimido coincide byte por byte con el exportado por Minecraft.
-  Zlib puede producir distintos bytes comprimidos para el mismo contenido.
-
-Para ejecutar las pruebas desde esta carpeta:
-
-```powershell
-node --test converter.test.cjs
-```
-
-Las pruebas de referencia leen los originales de `../../structures/arenas/acropolis/`.
-
-## Referencias del formato
-
-- [Cambios oficiales de 26.50: estructura v2 e índices IntArray](https://feedback.minecraft.net/hc/en-us/articles/48826825649933-Minecraft-Bedrock-Edition-26-50-Changelog-Wilderness-Bound)
-- [Cambios oficiales de 26.60: compresión zlib](https://feedback.minecraft.net/hc/en-us/articles/49852828563853-Minecraft-Bedrock-Edition-26-60-Changelog)
-
-La representación binaria comprimida se contrastó con el archivo
-`structures/arenas/acropolis/octopus.mcstructure` suministrado por el usuario.
+- [Configurar GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+- [Compression Streams: deflate usa el formato zlib](https://compression.spec.whatwg.org/)
+- [Formato v2 en Bedrock 26.50](https://feedback.minecraft.net/hc/en-us/articles/48826825649933-Minecraft-Bedrock-Edition-26-50-Changelog-Wilderness-Bound)
+- [Compresión en Bedrock 26.60](https://feedback.minecraft.net/hc/en-us/articles/49852828563853-Minecraft-Bedrock-Edition-26-60-Changelog)
