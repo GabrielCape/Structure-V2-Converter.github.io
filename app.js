@@ -9,8 +9,8 @@ const status = document.querySelector('#status');
 const dropzone = document.querySelector('#dropzone');
 let selected = [], urls = [], busy = false, cancelled = false, job = null;
 const supported = typeof Worker !== 'undefined' && typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined';
-const human = bytes => `${(bytes / 1024).toLocaleString('es', { maximumFractionDigits: 1 })} KiB`;
-if (!supported) { status.textContent = 'Tu navegador no admite esta herramienta. Actualizá Chrome, Edge, Firefox o Safari.'; filesInput.disabled = true; }
+const human = bytes => `${(bytes / 1024).toLocaleString('en', { maximumFractionDigits: 1 })} KiB`;
+if (!supported) { status.textContent = 'Your browser does not support this tool. Update Chrome, Edge, Firefox, or Safari.'; filesInput.disabled = true; }
 function releaseDownloads() { urls.forEach(url => URL.revokeObjectURL(url)); urls = []; results.replaceChildren(); }
 function choose(files) {
   if (busy || !supported) return;
@@ -19,14 +19,14 @@ function choose(files) {
     const item = document.createElement('li'); item.textContent = `${file.name} · ${human(file.size)}`; selection.append(item);
   }
   convertButton.disabled = clearButton.disabled = !selected.length;
-  status.textContent = selected.length ? `${selected.length} archivo(s) seleccionado(s).` : 'Seleccioná archivos para comenzar.';
+  status.textContent = selected.length ? `${selected.length} file(s) selected.` : 'Select files to get started.';
 }
 filesInput.onchange = () => choose(filesInput.files);
 dropzone.addEventListener('dragover', event => { event.preventDefault(); if (!busy) dropzone.classList.add('dragging'); });
 dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragging'));
 dropzone.addEventListener('drop', event => { event.preventDefault(); dropzone.classList.remove('dragging'); choose(event.dataTransfer.files); });
 clearButton.onclick = () => { filesInput.value = ''; choose([]); };
-cancelButton.onclick = () => { cancelled = true; if (job) { job.worker.terminate(); job.reject(Error('Conversión cancelada.')); job = null; } };
+cancelButton.onclick = () => { cancelled = true; if (job) { job.worker.terminate(); job.reject(Error('Conversion cancelled.')); job = null; } };
 function runWorker(buffer, onProgress) {
   return new Promise((resolve, reject) => {
     const worker = new Worker('./worker.js'); job = { worker, reject };
@@ -36,8 +36,8 @@ function runWorker(buffer, onProgress) {
       else if (event.data.error) finish(reject, Error(event.data.error));
       else finish(resolve, event.data);
     };
-    worker.onerror = event => { event.preventDefault(); finish(reject, Error('No se pudo iniciar el conversor. Verificá que worker.js y converter.js estén publicados junto a index.html.')); };
-    worker.onmessageerror = () => finish(reject, Error('No se pudo recibir el resultado del conversor.'));
+    worker.onerror = event => { event.preventDefault(); finish(reject, Error('Could not start the converter. Make sure worker.js and converter.js are published alongside index.html.')); };
+    worker.onmessageerror = () => finish(reject, Error('Could not receive the conversion result.'));
     worker.postMessage(buffer, [buffer]);
   });
 }
@@ -50,27 +50,27 @@ convertButton.onclick = async () => {
     for (let i = 0; i < selected.length && !cancelled; i++) {
       const file = selected[i], item = document.createElement('li'); results.append(item);
       const title = document.createElement('strong'); title.textContent = file.name; item.append(title);
-      const progress = stage => { status.textContent = `${i + 1} de ${selected.length} · ${stage}`; };
+      const progress = stage => { status.textContent = `${i + 1} of ${selected.length} · ${stage}`; };
       try {
-        progress('Abriendo archivo…');
-        if (!/\.mcstructure$/i.test(file.name)) throw Error('Seleccioná un archivo con extensión .mcstructure.');
-        if (file.size > 128 * 1024 * 1024) throw Error('El archivo supera 128 MiB.');
+        progress('Opening file…');
+        if (!/\.mcstructure$/i.test(file.name)) throw Error('Select a file with the .mcstructure extension.');
+        if (file.size > 128 * 1024 * 1024) throw Error('The file exceeds 128 MiB.');
         const buffer = await file.arrayBuffer();
-        if (cancelled) throw Error('Conversión cancelada.');
+        if (cancelled) throw Error('Conversion cancelled.');
         const { output, info } = await runWorker(buffer, progress);
         const url = URL.createObjectURL(new Blob([output], { type: 'application/octet-stream' })); urls.push(url);
         const detail = document.createElement('small');
         const reduction = (100 * (1 - info.after / info.before)).toFixed(1);
-        detail.textContent = `${info.dimensions.join(' × ')} bloques · ${human(info.before)} → ${human(info.after)} · ${Number(reduction) < 0 ? 'Aumento' : 'Reducción'}: ${Math.abs(Number(reduction))} % · Integridad verificada`;
+        detail.textContent = `${info.dimensions.join(' × ')} blocks · ${human(info.before)} → ${human(info.after)} · ${Number(reduction) < 0 ? 'Increase' : 'Reduction'}: ${Math.abs(Number(reduction))} % · Integrity verified`;
         const link = document.createElement('a'); link.className = 'download'; link.href = url;
-        link.download = file.name; link.textContent = 'Descargar';
+        link.download = file.name; link.textContent = 'Download';
         item.append(detail, link); ok++;
       } catch (error) {
         const detail = document.createElement('small'); detail.className = 'error'; detail.textContent = error.message; item.append(detail);
       }
       processed++;
     }
-    status.textContent = `${cancelled ? 'Cancelado' : 'Finalizado'}: ${ok} de ${processed} archivos procesados convertidos. Descargá cada resultado con su botón.`;
+    status.textContent = `${cancelled ? 'Cancelled' : 'Finished'}: ${ok} of ${processed} processed files converted. Download each result using its button.`;
   } finally {
     busy = false; cancelButton.hidden = true; filesInput.disabled = false;
     convertButton.disabled = clearButton.disabled = !selected.length;

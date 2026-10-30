@@ -1,45 +1,45 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Convertí archivos MCStructure al formato v2 con compresión zlib de Minecraft Bedrock 1.26.60. Gratis y directamente en tu navegador.">
+  <meta name="description" content="Convert MCStructure files to v2 with zlib compression for Minecraft Bedrock. Free and entirely in your browser.">
   <meta name="color-scheme" content="dark">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
-  <title>MCStructure · Conversor para Bedrock</title>
+  <title>MCStructure · Bedrock Converter</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
 </head>
 <body>
   <main>
     <header>
-      <span class="badge">MINECRAFT BEDROCK · 1.26.60</span>
-      <h1>Tus estructuras.<br><span>En el nuevo formato.</span></h1>
-      <p class="intro">Convertí archivos <code>.mcstructure</code> a v2 con compresión zlib. Seleccioná tus estructuras y descargalas listas para probar en Minecraft.</p>
+      <span class="badge">MINECRAFT BEDROCK</span>
+      <h1>Your structures.<br><span>In the new format.</span></h1>
+      <p class="intro">Convert <code>.mcstructure</code> files to v2 with zlib compression. Select your structures and download them, ready to test in Minecraft.</p>
     </header>
     <section class="panel" aria-labelledby="upload-heading">
-      <div class="panel-header"><h2 id="upload-heading">Convertir estructuras</h2><span class="privacy">100 % en tu navegador</span></div>
+      <div class="panel-header"><h2 id="upload-heading">Convert structures</h2><span class="privacy">100% in your browser</span></div>
       <label class="dropzone" id="dropzone" for="files">
         <span class="upload-icon" aria-hidden="true">↑</span>
-        <strong>Elegí archivos o arrastralos acá</strong>
-        <span>Uno o varios .mcstructure · Hasta 128 MiB por archivo</span>
+        <strong>Choose files or drag them here</strong>
+        <span>One or more .mcstructure files · Up to 128 MiB per file</span>
         <input id="files" type="file" accept=".mcstructure" multiple>
       </label>
-      <ul id="selection" class="selection" aria-label="Archivos seleccionados"></ul>
+      <ul id="selection" class="selection" aria-label="Selected files"></ul>
       <div class="actions">
-        <button id="convert" disabled>Convertir archivos</button>
-        <button id="cancel" class="secondary" hidden>Cancelar</button>
-        <button id="clear" class="secondary" disabled>Limpiar</button>
+        <button id="convert" disabled>Convert files</button>
+        <button id="cancel" class="secondary" hidden>Cancel</button>
+        <button id="clear" class="secondary" disabled>Clear</button>
       </div>
-      <p id="status" class="status" role="status" aria-live="polite">Seleccioná archivos para comenzar.</p>
-      <ul id="results" class="results" aria-label="Resultados"></ul>
-      <noscript>Activá JavaScript para convertir estructuras en tu navegador.</noscript>
+      <p id="status" class="status" role="status" aria-live="polite">Select files to get started.</p>
+      <ul id="results" class="results" aria-label="Results"></ul>
+      <noscript>Enable JavaScript to convert structures in your browser.</noscript>
     </section>
-    <section class="notes" aria-label="Información">
-      <article><h2>Tus archivos quedan con vos</h2><p>No se suben a ningún servidor. La conversión y la verificación se hacen en tu dispositivo. Las descargas mantienen el nombre original del archivo.</p></article>
-      <article><h2>Compatible con los formatos anteriores</h2><p>Acepta v1, v2 sin comprimir y v2 con zlib. Conserva bloques, estados, entidades y datos asociados.</p></article>
+    <section class="notes" aria-label="Information">
+      <article><h2>Your files stay with you</h2><p>Nothing is uploaded to a server. Conversion and verification happen on your device.</p></article>
+      <article><h2>Works with earlier formats</h2><p>Supports v1, uncompressed v2, and v2 with zlib. Preserves blocks, states, entities, and associated data.</p></article>
     </section>
-    <footer>La conversión no une estructuras ni amplía el límite de exportación. Probá los resultados en una copia de tu mundo. Herramienta independiente, sin afiliación con Mojang o Microsoft.</footer>
+    <footer>Conversion does not merge structures or increase the export limit. Test the results in a copy of your world. An independent tool, not affiliated with Mojang or Microsoft.</footer>
   </main>
 </body>
 </html>
